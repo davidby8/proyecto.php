@@ -1,8 +1,8 @@
 <?php
-$host = 'localhost';      // Servidor de la base de datos
-$dbname = 'DavidyDaniel Muebles';     // Nombre de la base de datos
-$username = 'root';       // Usuario de la base de datos
-$password = '';           // Contraseña de la base de datos
+$host = 'localhost';      
+$dbname = 'DavidyDaniel Muebles';     
+$username = 'danielgil';       
+$password = '12345678';           
 
 try {
     $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);

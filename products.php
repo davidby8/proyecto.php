@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// Lógica para agregar, editar y eliminar productos
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['agregar'])) {
         $nombre = $_POST['nombre'];

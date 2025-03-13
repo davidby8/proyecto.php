@@ -3,7 +3,7 @@ session_start();
 
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_name'])) {
     header('Location: login.php');
-    exit;
+    exit();
 }
 
 $user_name = $_SESSION['user_name'];
@@ -25,3 +25,4 @@ $user_name = $_SESSION['user_name'];
     </div>
 </body>
 </html>
+

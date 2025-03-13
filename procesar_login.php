@@ -12,9 +12,11 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
         $_SESSION['user_name'] = $username;
         $_SESSION['user_id'] = 1;
 
-        header("Location: panel.php");
+        
+        header("Location: dashboard.php");
         exit();
     } else {
+        
         echo "Credenciales incorrectas.";
     }
 } else {

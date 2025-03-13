@@ -1,10 +1,12 @@
 <?php
-session_start(); 
+session_start();
 
 if (isset($_SESSION['user_id'])) {
     header("Location: panel.php");
     exit();
 }
+
+$error_message = isset($_GET['error']) ? $_GET['error'] : '';
 ?>
 
 <!DOCTYPE html>
@@ -16,6 +18,11 @@ if (isset($_SESSION['user_id'])) {
 </head>
 <body>
     <h2>Iniciar Sesión</h2>
+
+    <?php if ($error_message): ?>
+        <p style="color: red;"><?php echo htmlspecialchars($error_message); ?></p>
+    <?php endif; ?>
+
     <form action="procesar_login.php" method="POST">
         <label for="username">Nombre de usuario:</label>
         <input type="text" id="username" name="username" required><br><br>

@@ -1,77 +1,241 @@
 <?php
+
 session_start();
 
+
+$host = "localhost"; 
+$dbname = "DavidyDaniel Muebles";
+$username = "root"; 
+$password = "C@ramelo2003"; 
+
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    
+    $usuario = $_POST['usuario'];
+    $contraseña = $_POST['contraseña'];
 
-    $servername = "localhost";
-    $dbusername = "root";
-    $dbpassword = "";
-    $dbname = "DavidyDaniel Muebles";
+    
+    try {
+        $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    $conn = new mysqli($servername, $dbusername, $dbpassword, $dbname);
-
-    if ($conn->connect_error) {
-        die("Conexión fallida: " . $conn->connect_error);
-    }
-
-    $sql = "SELECT * FROM usuarios WHERE username = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
-        $user = $result->fetch_assoc();
         
-        if (password_verify($password, $user['contrasenya'])) {
-            $_SESSION['id_usuar'] = $user['id_usuar'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['nom_usuari'] = $user['nom_usuari'];
-            $_SESSION['cognom_usuari'] = $user['cognom_usuari'];
-            $_SESSION['correu_electronic'] = $user['correu_electronic'];
-            $_SESSION['rol'] = $user['rol'];
+        $sql = "SELECT * FROM usuarios WHERE usuario = :usuario LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':usuario', $usuario);
+        $stmt->execute();
 
+        
+        $usuarioEncontrado = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($usuarioEncontrado && password_verify($contraseña, $usuarioEncontrado['contraseña'])) {
+            
+            $_SESSION['id_usuario'] = $usuarioEncontrado['id_usuario'];
+            $_SESSION['usuario'] = $usuarioEncontrado['usuario'];
             header("Location: dashboard.php");
             exit();
         } else {
-            $error = "Contraseña incorrecta.";
+            echo "Usuario o contraseña incorrectos.";
         }
-    } else {
-        $error = "Usuario no encontrado.";
+    } catch (PDOException $e) {
+        echo "Error de conexión: " . $e->getMessage();
     }
-
-    $conn->close();
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+  <meta charset="UTF-8">
+  <title>Muebles- Iniciar Sesión</title>
+  <style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    margin: 5px;
+}
+
+.btn:hover {
+    background-color: #218838;
+}
+
+.error {
+    color: red;
+    text-align: center;
+}
+
+
+.header {
+    background-color: #2c3e50;
+    color: #fff;
+    padding: 60px 0;
+    text-align: center;
+}
+
+.header h1 {
+    font-size: 3rem;
+    margin: 0;
+}
+
+.header p {
+    font-size: 1.2rem;
+    margin: 10px 0 0;
+}
+
+.hero {
+    background: url('https://via.placeholder.com/1200x400') no-repeat center center/cover;
+    color: #fff;
+    padding: 100px 0;
+    text-align: center;
+}
+
+.hero h2 {
+    font-size: 2.5rem;
+    margin: 0;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    margin: 10px 0 20px;
+}
+
+.hero .btn {
+    background-color: #e67e22;
+    color: #fff;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    margin: 5px;
+}
+
+.hero .btn-secondary {
+    background-color: #34495e;
+}
+
+.about {
+    padding: 60px 0;
+    text-align: center;
+    background-color: #fff;
+}
+
+.about h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.about p {
+    font-size: 1.1rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.featured-products {
+    padding: 60px 0;
+    background-color: #f9f9f9;
+    text-align: center;
+}
+
+.featured-products h2 {
+    font-size: 2rem;
+    margin-bottom: 40px;
+}
+
+.product-grid {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.product-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    width: 300px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-10px);
+}
+
+.product-card img {
+    width: 100%;
+    border-radius: 8px;
+}
+
+.product-card h3 {
+    font-size: 1.5rem;
+    margin: 15px 0 10px;
+}
+
+.product-card p {
+    font-size: 1rem;
+    color: #666;
+}
+
+.footer {
+    background-color: #2c3e50;
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 40px;
+}
+
+.footer p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+  </style>
 </head>
 <body>
-    <h2>Iniciar sesión</h2>
 
-    <?php
-    if (isset($error)) {
-        echo "<p style='color: red;'>$error</p>";
-    }
-    ?>
+  <header>
+    <h1>Muebles</h1>
+  </header>
 
-    <form action="login.php" method="POST">
-        <label for="username">Nombre de usuario:</label>
-        <input type="text" id="username" name="username" required><br>
+  <nav>
+    <a href="#">Inicio</a>
+    <a href="#">Catálogo</a>
+    <a href="#">Sobre Nosotros</a>
+    <a href="#">Contacto</a>
+    <a href="login.php" class="login-btn">Iniciar Sesión</a>
+  </nav>
 
-        <label for="password">Contraseña:</label>
-        <input type="password" id="password" name="password" required><br>
+  <div class="login-container">
+    <div class="login-box">
+      <h2>Iniciar Sesión</h2>
+      <form method="POST" action="">
+        <input type="text" name="usuario" placeholder="Usuario" required><br>
+        <input type="password" name="contraseña" placeholder="Contraseña" required><br>
+        <button type="submit">Iniciar Sesión</button>
+      </form>
+    </div>
+  </div>
 
-        <button type="submit">Iniciar sesión</button>
-    </form>
+  <footer>
+    © 2025 Muebles.
+  </footer>
+
 </body>
 </html>
-
-

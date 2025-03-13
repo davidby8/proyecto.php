@@ -1,6 +1,5 @@
 <?php
 session_start();
-
 ?>
 
 <!DOCTYPE html>
@@ -9,171 +8,104 @@ session_start();
   <meta charset="UTF-8">
   <title>Panel de Usuario - Muebles</title>
   <style>
-   body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
-}
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
 
-.container {
-    width: 90%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
+    header {
+      background-color: #2c3e50;
+      color: #fff;
+      padding: 20px 0;
+      text-align: center;
+    }
 
-.btn {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #28a745;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 4px;
-    margin: 5px;
-}
+    header h1 {
+      font-size: 2.5rem;
+      margin: 0;
+    }
 
-.btn:hover {
-    background-color: #218838;
-}
+    nav {
+      display: flex;
+      justify-content: center;
+      background-color: #34495e;
+      padding: 10px 0;
+    }
 
-.error {
-    color: red;
-    text-align: center;
-}
+    nav a {
+      color: #fff;
+      padding: 10px 20px;
+      text-decoration: none;
+      font-size: 1.1rem;
+      transition: background-color 0.3s ease;
+    }
 
+    nav a:hover {
+      background-color: #1abc9c;
+    }
 
-.header {
-    background-color: #2c3e50;
-    color: #fff;
-    padding: 60px 0;
-    text-align: center;
-}
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
 
-.header h1 {
-    font-size: 3rem;
-    margin: 0;
-}
+    .content h2 {
+      font-size: 2rem;
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
 
-.header p {
-    font-size: 1.2rem;
-    margin: 10px 0 0;
-}
+    .content p {
+      font-size: 1.2rem;
+      color: #34495e;
+      margin: 20px 0;
+    }
 
-.hero {
-    background: url('https://via.placeholder.com/1200x400') no-repeat center center/cover;
-    color: #fff;
-    padding: 100px 0;
-    text-align: center;
-}
+    .logout-btn {
+      display: inline-block;
+      padding: 12px 25px;
+      background-color: #e67e22;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+      margin-top: 20px;
+    }
 
-.hero h2 {
-    font-size: 2.5rem;
-    margin: 0;
-}
+    .logout-btn:hover {
+      background-color: #d35400;
+    }
 
-.hero p {
-    font-size: 1.2rem;
-    margin: 10px 0 20px;
-}
+    .footer {
+      background-color: #2c3e50;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+      margin-top: 40px;
+    }
 
-.hero .btn {
-    background-color: #e67e22;
-    color: #fff;
-    padding: 10px 20px;
-    text-decoration: none;
-    border-radius: 5px;
-    margin: 5px;
-}
-
-.hero .btn-secondary {
-    background-color: #34495e;
-}
-
-.about {
-    padding: 60px 0;
-    text-align: center;
-    background-color: #fff;
-}
-
-.about h2 {
-    font-size: 2rem;
-    margin-bottom: 20px;
-}
-
-.about p {
-    font-size: 1.1rem;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.featured-products {
-    padding: 60px 0;
-    background-color: #f9f9f9;
-    text-align: center;
-}
-
-.featured-products h2 {
-    font-size: 2rem;
-    margin-bottom: 40px;
-}
-
-.product-grid {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.product-card {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    width: 300px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-}
-
-.product-card:hover {
-    transform: translateY(-10px);
-}
-
-.product-card img {
-    width: 100%;
-    border-radius: 8px;
-}
-
-.product-card h3 {
-    font-size: 1.5rem;
-    margin: 15px 0 10px;
-}
-
-.product-card p {
-    font-size: 1rem;
-    color: #666;
-}
-
-.footer {
-    background-color: #2c3e50;
-    color: #fff;
-    text-align: center;
-    padding: 20px 0;
-    margin-top: 40px;
-}
-
-.footer p {
-    margin: 0;
-    font-size: 0.9rem;
-}
+    .footer p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
 
+  <!-- Header -->
   <header>
     <h1>Bienvenido a Muebles</h1>
   </header>
 
+  <!-- Navigation Bar -->
   <nav>
     <a href="#">Inicio</a>
     <a href="#">Catálogo</a>
@@ -181,16 +113,18 @@ session_start();
     <a href="logout.php">Cerrar sesión</a>
   </nav>
 
-  <div class="content">
-    <h2>¡Has iniciado sesión correctamente!</h2>
-    <p>Aqui veras nuestro catalogo de muebles, haz tus pedidos y mucho más.</p>
-    <form action="logout.php" method="post">
-      <button class="logout-btn">Cerrar sesión</button>
-    </form>
+  <!-- Dashboard Content -->
+  <div class="container">
+    <div class="content">
+      <h2>¡Has iniciado sesión correctamente!</h2>
+      <p>Ahora puedes acceder al catálogo de muebles, hacer pedidos y gestionar tu perfil.</p>
+      <a href="logout.php" class="logout-btn">Cerrar sesión</a>
+    </div>
   </div>
 
+  <!-- Footer -->
   <footer>
-    © Muebles.
+    <p>© 2025 Muebles. Todos los derechos reservados.</p>
   </footer>
 
 </body>

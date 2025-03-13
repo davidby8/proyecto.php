@@ -1,34 +1,32 @@
 <?php
-session_start();
-
 $host = "localhost"; 
 $dbname = "DavidyDaniel_Muebles";
 $username = "root"; 
 $password = "C@ramelo2003"; 
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
     $usuario = $_POST['usuario'];
     $contraseña = $_POST['contraseña'];
+    $email = $_POST['email'];
+    $nombre = $_POST['nombre'];
+    $cognom = $_POST['cognom'];
 
     try {
         $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        $sql = "SELECT * FROM usuarios WHERE usuario = :usuario LIMIT 1";
+        $hashedPassword = password_hash($contraseña, PASSWORD_DEFAULT);
+
+        $sql = "INSERT INTO usuarios (usuario, contraseña, email, nombre, cognom) VALUES (:usuario, :contraseña, :email, :nombre, :cognom)";
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':usuario', $usuario);
+        $stmt->bindParam(':contraseña', $hashedPassword);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':nombre', $nombre);
+        $stmt->bindParam(':cognom', $cognom);
         $stmt->execute();
 
-        $usuarioEncontrado = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($usuarioEncontrado && password_verify($contraseña, $usuarioEncontrado['contraseña'])) {
-            $_SESSION['id_usuario'] = $usuarioEncontrado['id_usuario'];
-            $_SESSION['usuario'] = $usuarioEncontrado['usuario'];
-            header("Location: dashboard.php");
-            exit();
-        } else {
-            echo "<div class='error'>Usuario o contraseña incorrectos.</div>";
-        }
+        echo "<div class='success'>Usuario registrado exitosamente. <a href='login.php'>Iniciar sesión</a></div>";
     } catch (PDOException $e) {
         echo "Error de conexión: " . $e->getMessage();
     }
@@ -39,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Iniciar Sesión - Muebles</title>
+    <title>Registrarse - Muebles</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -70,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             margin: 0 10px;
         }
 
-        .login-section {
+        .register-section {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -78,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             background-color: #ecf0f1;
         }
 
-        .login-container {
+        .register-container {
             background-color: #fff;
             padding: 30px;
             border-radius: 10px;
@@ -87,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             max-width: 100%;
         }
 
-        .login-container h2 {
+        .register-container h2 {
             text-align: center;
             margin-bottom: 20px;
             color: #2c3e50;
@@ -123,8 +121,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             background-color: #2ecc71;
         }
 
-        .error {
-            color: red;
+        .success {
+            color: green;
             text-align: center;
         }
 
@@ -145,13 +143,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         <a href="index.php">Inicio</a>
         <a href="catalogo.php">Catálogo</a>
         <a href="contacto.php">Contacto</a>
-        <a href="register.php" class="btn">Registrarse</a>
+        <a href="login.php" class="btn">Iniciar Sesión</a>
     </nav>
 </header>
 
-<section class="login-section">
-    <div class="login-container">
-        <h2>Iniciar Sesión</h2>
+<section class="register-section">
+    <div class="register-container">
+        <h2>Registrarse</h2>
         <form method="POST" action="">
             <div class="input-group">
                 <input type="text" name="usuario" placeholder="Usuario" required>
@@ -159,7 +157,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             <div class="input-group">
                 <input type="password" name="contraseña" placeholder="Contraseña" required>
             </div>
-            <button type="submit" name="login">Iniciar Sesión</button>
+            <div class="input-group">
+                <input type="email" name="email" placeholder="Correo Electrónico" required>
+            </div>
+            <div class="input-group">
+                <input type="text" name="nombre" placeholder="Nombre" required>
+            </div>
+            <div class="input-group">
+                <input type="text" name="cognom" placeholder="Apellido" required>
+            </div>
+            <button type="submit" name="register">Registrarse</button>
         </form>
     </div>
 </section>
@@ -170,6 +177,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 
 </body>
 </html>
-
 
 

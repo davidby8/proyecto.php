@@ -1,7 +1,7 @@
 <?php
 session_start(); 
 
-if (isset($_SESSION['username'])) {
+if (isset($_SESSION['user_id'])) {
     header("Location: panel.php");
     exit();
 }
@@ -27,3 +27,4 @@ if (isset($_SESSION['username'])) {
     </form>
 </body>
 </html>
+

@@ -1,45 +1,23 @@
 <?php
-session_start(); 
+session_start();
 
-include('conexion.php'); 
-
+$valid_username = "admin";
+$valid_password = "password123";
 
 if (isset($_POST['username']) && isset($_POST['password'])) {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    
-    $stmt = $conn->prepare("SELECT id_usuari, contrasenya, rol FROM usuaris WHERE username = ?");
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $stmt->store_result();
+    if ($username === $valid_username && $password === $valid_password) {
+        $_SESSION['user_name'] = $username;
+        $_SESSION['user_id'] = 1;
 
-    
-    if ($stmt->num_rows > 0) {
-        $stmt->bind_result($id_usuari, $hashed_password, $rol);
-        $stmt->fetch();
-
-        
-        if (password_verify($password, $hashed_password)) {
-            
-            $_SESSION['id_usuari'] = $id_usuari;
-            $_SESSION['username'] = $username;
-            $_SESSION['rol'] = $rol;
-
-            
-            header("Location: panel.php");
-            exit();
-        } else {
-            
-            echo "Contraseña incorrecta.";
-        }
+        header("Location: panel.php");
+        exit();
     } else {
-        
-        echo "Nombre de usuario no encontrado.";
+        echo "Credenciales incorrectas.";
     }
-
-    $stmt->close();
+} else {
+    echo "Por favor, ingrese las credenciales.";
 }
-
-$conn->close();
 ?>

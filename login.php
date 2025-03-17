@@ -2,8 +2,8 @@
 session_start();
 
 $host = "localhost"; 
-$dbname = "DavidyDaniel_Muebles";
-$username = "root"; 
+$dbname = "Muebles";
+$username = "daniel"; 
 $password = "C@ramelo2003"; 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {

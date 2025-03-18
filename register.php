@@ -1,34 +1,40 @@
 <?php
 $host = "localhost"; 
-$dbname = "DavidyDaniel_Muebles";
-$username = "root"; 
+$dbname = "Muebles";
+$username = "daniel"; 
 $password = "C@ramelo2003"; 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
-    $usuario = $_POST['usuario'];
-    $contraseña = $_POST['contraseña'];
-    $email = $_POST['email'];
-    $nombre = $_POST['nombre'];
-    $cognom = $_POST['cognom'];
+    $username = $_POST['username'];
+    $contrasenya = $_POST['contrasenya'];
+    $correu_electronic = $_POST['correu_electronic'];
+    $nom_usuari = $_POST['nom_usuari'];
+    $cognom_usuari = $_POST['cognom_usuari'];
 
     try {
+        // Conexión a la base de datos
         $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        $hashedPassword = password_hash($contraseña, PASSWORD_DEFAULT);
+        // Hashear la contraseña
+        $hashedPassword = password_hash($contrasenya, PASSWORD_DEFAULT);
 
-        $sql = "INSERT INTO usuarios (usuario, contraseña, email, nombre, cognom) VALUES (:usuario, :contraseña, :email, :nombre, :cognom)";
+        // Insertar el nuevo usuario en la base de datos
+        $sql = "INSERT INTO usuaris (username, contrasenya, correu_electronic, nom_usuari, cognom_usuari) 
+                VALUES (:username, :contrasenya, :correu_electronic, :nom_usuari, :cognom_usuari)";
         $stmt = $pdo->prepare($sql);
-        $stmt->bindParam(':usuario', $usuario);
-        $stmt->bindParam(':contraseña', $hashedPassword);
-        $stmt->bindParam(':email', $email);
-        $stmt->bindParam(':nombre', $nombre);
-        $stmt->bindParam(':cognom', $cognom);
+        $stmt->bindParam(':username', $username);
+        $stmt->bindParam(':contrasenya', $hashedPassword);
+        $stmt->bindParam(':correu_electronic', $correu_electronic);
+        $stmt->bindParam(':nom_usuari', $nom_usuari);
+        $stmt->bindParam(':cognom_usuari', $cognom_usuari);
         $stmt->execute();
 
+        // Mensaje de éxito
         echo "<div class='success'>Usuario registrado exitosamente. <a href='login.php'>Iniciar sesión</a></div>";
     } catch (PDOException $e) {
-        echo "Error de conexión: " . $e->getMessage();
+        // Manejo de errores
+        echo "<div class='error'>Error de conexión: " . $e->getMessage() . "</div>";
     }
 }
 ?>
@@ -124,6 +130,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
         .success {
             color: green;
             text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            margin-bottom: 20px;
         }
 
         footer {
@@ -152,19 +165,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
         <h2>Registrarse</h2>
         <form method="POST" action="">
             <div class="input-group">
-                <input type="text" name="usuario" placeholder="Usuario" required>
+                <input type="text" name="username" placeholder="Usuario" required>
             </div>
             <div class="input-group">
-                <input type="password" name="contraseña" placeholder="Contraseña" required>
+                <input type="password" name="contrasenya" placeholder="Contraseña" required>
             </div>
             <div class="input-group">
-                <input type="email" name="email" placeholder="Correo Electrónico" required>
+                <input type="email" name="correu_electronic" placeholder="Correo Electrónico" required>
             </div>
             <div class="input-group">
-                <input type="text" name="nombre" placeholder="Nombre" required>
+                <input type="text" name="nom_usuari" placeholder="Nombre" required>
             </div>
             <div class="input-group">
-                <input type="text" name="cognom" placeholder="Apellido" required>
+                <input type="text" name="cognom_usuari" placeholder="Apellido" required>
             </div>
             <button type="submit" name="register">Registrarse</button>
         </form>
@@ -177,5 +190,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
 
 </body>
 </html>
-
-

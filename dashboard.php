@@ -1,5 +1,21 @@
 <?php
 session_start();
+
+if (!isset($_SESSION['id_usuari'])) {
+    header("Location: login.php");
+    exit();
+}
+
+require 'config.php';
+
+try {
+    $stmt = $pdo->prepare("SELECT nom_usuari, cognom_usuari FROM usuaris WHERE id_usuari = :id_usuari");
+    $stmt->bindParam(':id_usuari', $_SESSION['id_usuari']);
+    $stmt->execute();
+    $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Error al obtener la información del usuario: " . $e->getMessage());
+}
 ?>
 
 <!DOCTYPE html>
@@ -100,12 +116,10 @@ session_start();
 </head>
 <body>
 
-  <!-- Header -->
   <header>
-    <h1>Bienvenido a Muebles</h1>
+    <h1>Bienvenido a Muebles, <?php echo htmlspecialchars($usuario['nom_usuari']); ?></h1>
   </header>
 
-  <!-- Navigation Bar -->
   <nav>
     <a href="#">Inicio</a>
     <a href="#">Catálogo</a>
@@ -113,7 +127,6 @@ session_start();
     <a href="logout.php">Cerrar sesión</a>
   </nav>
 
-  <!-- Dashboard Content -->
   <div class="container">
     <div class="content">
       <h2>¡Has iniciado sesión correctamente!</h2>
@@ -122,7 +135,6 @@ session_start();
     </div>
   </div>
 
-  <!-- Footer -->
   <footer>
     <p>© 2025 Muebles. Todos los derechos reservados.</p>
   </footer>

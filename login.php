@@ -14,16 +14,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        $sql = "SELECT * FROM usuarios WHERE usuario = :usuario LIMIT 1";
+        // Buscar al usuario en la base de datos
+        $sql = "SELECT * FROM usuaris WHERE username = :usuario LIMIT 1";
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':usuario', $usuario);
         $stmt->execute();
 
         $usuarioEncontrado = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($usuarioEncontrado && password_verify($contraseña, $usuarioEncontrado['contraseña'])) {
-            $_SESSION['id_usuario'] = $usuarioEncontrado['id_usuario'];
-            $_SESSION['usuario'] = $usuarioEncontrado['usuario'];
+        // Verificar la contraseña
+        if ($usuarioEncontrado && password_verify($contraseña, $usuarioEncontrado['contrasenya'])) {
+            // Iniciar sesión
+            $_SESSION['id_usuari'] = $usuarioEncontrado['id_usuari'];
+            $_SESSION['username'] = $usuarioEncontrado['username'];
             header("Location: dashboard.php");
             exit();
         } else {
@@ -170,6 +173,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 
 </body>
 </html>
-
-
-

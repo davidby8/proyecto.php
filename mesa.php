@@ -11,13 +11,14 @@ if (!isset($_SESSION['id_usuari'])) {
 require 'config.php';
 
 try {
-    // Recuperar los datos del usuario desde la base de datos
-    $stmt = $pdo->prepare("SELECT nom_usuari, cognom_usuari FROM usuaris WHERE id_usuari = :id_usuari");
-    $stmt->bindParam(':id_usuari', $_SESSION['id_usuari']);
+    // Recuperar los productos que sean de la categoría 'mesas'
+    $stmt = $pdo->prepare("SELECT * FROM catalogo WHERE categoria = :categoria");
+    $stmt->bindParam(':categoria', $categoria);
+    $categoria = 'mesas';  // Definir la categoría como 'mesas'
     $stmt->execute();
-    $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+    $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die("Error al obtener la información del usuario: " . $e->getMessage());
+    die("Error al obtener los productos: " . $e->getMessage());
 }
 ?>
 
@@ -25,7 +26,7 @@ try {
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Panel de Usuario - Muebles</title>
+  <title>Mesas - Catálogo de Muebles</title>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -98,84 +99,107 @@ try {
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
-    .content h2 {
-      font-size: 2rem;
+    .product-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-evenly;
+      margin: 20px;
+    }
+
+    .product-card {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      margin: 10px;
+      padding: 20px;
+      width: 280px;
+      text-align: center;
+    }
+
+    .product-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    .product-card h3 {
       color: #2c3e50;
+      font-size: 1.5rem;
+      margin: 15px 0;
+    }
+
+    .product-card p {
+      color: #34495e;
+      font-size: 1rem;
       margin-bottom: 10px;
     }
 
-    .content p {
+    .product-card .price {
       font-size: 1.2rem;
-      color: #34495e;
-      margin: 20px 0;
+      font-weight: bold;
+      color: #e67e22;
     }
 
-    .logout-btn {
-      display: inline-block;
-      padding: 12px 25px;
+    .product-card .btn {
       background-color: #e67e22;
       color: white;
+      padding: 10px 20px;
       text-decoration: none;
       border-radius: 4px;
-      font-size: 1rem;
-      transition: background-color 0.3s ease;
-      margin-top: 20px;
+      transition: background-color 0.3s;
     }
 
-    .logout-btn:hover {
+    .product-card .btn:hover {
       background-color: #d35400;
     }
 
-    .footer {
-      background-color: #2c3e50;
-      color: #fff;
-      text-align: center;
-      padding: 20px;
-      margin-top: 40px;
-    }
-
-    .footer p {
-      margin: 0;
-      font-size: 0.9rem;
-    }
-
-    /* Estilo para la parte superior con el título "Muebles" */
-    .header-banner {
-      background-color: #2c3e50;
-      color: #fff;
-      padding: 15px;
-      text-align: center;
-      font-size: 2rem;
-      margin-bottom: 20px;
+    /* Menú desplegable */
+    .dropdown {
       position: relative;
+      display: block;
     }
 
-    /* Menú lateral */
-    .menu-btn {
-      font-size: 24px;
-      cursor: pointer;
-      color: #fff;
+    .dropbtn {
+      color: white;
+      padding: 15px 20px;
+      text-decoration: none;
+      font-size: 1.2rem;
+      display: block;
+      transition: background-color 0.3s;
       background-color: transparent;
       border: none;
-      padding: 15px;
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 2;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
     }
 
-    .content {
-      padding: 20px;
-      flex-grow: 1;
-      transition: margin-left 0.3s;
+    .dropbtn:hover {
+      background-color: #1abc9c;
     }
 
-    /* Agregar animación al contenido cuando el menú se despliega */
-    .sidebar.open {
-      left: 0; /* Mueve la barra lateral a la vista */
+    .dropdown-content {
+      display: none;
+      background-color: #2c3e50;
+      width: 100%;
     }
 
-    /* Botón del carrito en la parte superior derecha */
+    .dropdown-content a {
+      color: white;
+      padding: 12px 30px;
+      text-decoration: none;
+      display: block;
+      font-size: 1.1rem;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #1abc9c;
+    }
+
+    .show {
+      display: block;
+    }
+
+    /* Estilo del carrito */
     .cart-btn {
       font-size: 1.8rem;
       color: white;
@@ -188,13 +212,11 @@ try {
       z-index: 3;
     }
 
-    /* Estilo para el icono del carrito */
     .cart-btn:before {
       content: '\1F6D2'; /* Carrito de compras */
       font-size: 2rem;
     }
 
-    /* Carrito desplegable */
     .cart-sidebar {
       width: 250px;
       position: fixed;
@@ -243,51 +265,6 @@ try {
       margin: 5px 20px;
     }
 
-    /* Estilos para el menú desplegable del catálogo */
-    .dropdown {
-      position: relative;
-      display: block;
-    }
-
-    .dropbtn {
-      color: white;
-      padding: 15px 20px;
-      text-decoration: none;
-      font-size: 1.2rem;
-      display: block;
-      transition: background-color 0.3s;
-      background-color: transparent;
-      border: none;
-      width: 100%;
-      text-align: left;
-      cursor: pointer;
-    }
-
-    .dropbtn:hover {
-      background-color: #1abc9c;
-    }
-
-    .dropdown-content {
-      display: none;
-      background-color: #2c3e50;
-      width: 100%;
-    }
-
-    .dropdown-content a {
-      color: white;
-      padding: 12px 30px;
-      text-decoration: none;
-      display: block;
-      font-size: 1.1rem;
-    }
-
-    .dropdown-content a:hover {
-      background-color: #1abc9c;
-    }
-
-    .show {
-      display: block;
-    }
   </style>
 </head>
 <body>
@@ -313,9 +290,6 @@ try {
     <a href="logout.php" class="logout-btn">Cerrar sesión</a>
   </div>
 
-  <!-- Botón del carrito (en la parte superior derecha) -->
-  <button class="cart-btn" onclick="toggleCart()"></button>
-
   <!-- Carrito desplegable -->
   <div id="cartSidebar" class="cart-sidebar">
     <span class="close-btn" onclick="toggleCart()">&times;</span>
@@ -323,28 +297,44 @@ try {
     <div class="cart-items">
       <?php
         // Mostrar los productos del carrito
-        if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0) {
-            foreach ($_SESSION['cart'] as $item) {
-                echo '<p>' . htmlspecialchars($item['name']) . ' - $' . htmlspecialchars($item['price']) . '</p>';
+        if (isset($_SESSION['carrito'])) {
+            foreach ($_SESSION['carrito'] as $producto) {
+                echo "<p>" . $producto['nombre_producto'] . " - $" . $producto['precio'] . "</p>";
             }
         } else {
-            echo '<p>No hay productos en el carrito.</p>';
+            echo "<p>Tu carrito está vacío.</p>";
         }
       ?>
     </div>
+    <a href="checkout.php">Ir a pagar</a>
   </div>
 
-  <!-- Banner superior con el título "Muebles" -->
-  <div class="header-banner">
-    <h1>Muebles</h1>
-  </div>
+  <!-- Botón del carrito -->
+  <button class="cart-btn" onclick="toggleCart()">🛒</button>
+
+  <!-- Banner superior con el título "Mesas" -->
+  <header>
+    <h1>Catálogo de Mesas</h1>
+  </header>
 
   <!-- Contenido principal -->
   <div class="content">
     <div class="container">
-      <h2>¡Has iniciado sesión correctamente!</h2>
-      <p>Ahora puedes acceder al catálogo de muebles, hacer pedidos y gestionar tu perfil.</p>
-      <a href="logout.php" class="logout-btn">Cerrar sesión</a>
+      <div class="product-container">
+        <?php if (!empty($productos)): ?>
+          <?php foreach ($productos as $producto): ?>
+            <div class="product-card">
+              <img src="<?php echo htmlspecialchars($producto['imagen_url']); ?>" alt="<?php echo htmlspecialchars($producto['nombre_producto']); ?>">
+              <h3><?php echo htmlspecialchars($producto['nombre_producto']); ?></h3>
+              <p><?php echo htmlspecialchars($producto['descripcion']); ?></p>
+              <p class="price">$<?php echo number_format($producto['precio'], 2); ?></p>
+              <a href="producto.php?id=<?php echo $producto['id_producto']; ?>" class="btn">Ver detalles</a>
+            </div>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <p>No hay productos en esta categoría.</p>
+        <?php endif; ?>
+      </div>
     </div>
   </div>
 
@@ -367,12 +357,6 @@ try {
       }
     }
 
-    // Función para abrir y cerrar el carrito
-    function toggleCart() {
-      const cartSidebar = document.getElementById('cartSidebar');
-      cartSidebar.classList.toggle('open');
-    }
-
     // Función para mostrar/ocultar el menú desplegable del catálogo
     function toggleDropdown(event) {
       event.stopPropagation(); // Evita que el evento se propague y cierre el menú inmediatamente
@@ -391,12 +375,14 @@ try {
         }
       }
     }
+
+    // Función para abrir y cerrar el carrito
+    function toggleCart() {
+      const cartSidebar = document.getElementById('cartSidebar');
+      cartSidebar.classList.toggle('open');
+    }
   </script>
 
 </body>
 </html>
-
-
-
-
 

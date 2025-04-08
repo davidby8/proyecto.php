@@ -1,9 +1,14 @@
 <?php
 session_start();
 
+// Si ya está logueado, redirigir automáticamente
 if (isset($_SESSION['id_usuari'])) {
-    // Si ya está logueado, redirigir al dashboard
-    header("Location: dashboard.php");
+    // Si el usuario ya está logueado, redirige al dashboard
+    if ($_SESSION['rol'] == 'admin') { // Verifica el rol del usuario
+        header("Location: admin_dashboard.php"); // Si es admin, redirige al admin_dashboard
+    } else {
+        header("Location: dashboard.php"); // Si no es admin, redirige al dashboard normal
+    }
     exit();
 }
 
@@ -18,16 +23,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+        // Preparar la consulta para obtener el usuario
         $stmt = $pdo->prepare("SELECT * FROM usuaris WHERE username = ? LIMIT 1");
         $stmt->execute([$_POST['usuario']]);
         $usuario = $stmt->fetch();
 
+        // Verificar si el usuario existe y la contraseña es correcta
         if ($usuario && password_verify($_POST['contrasena'], $usuario['contrasenya'])) {
             // Crear una sesión para el usuario
             $_SESSION['id_usuari'] = $usuario['id_usuari']; // Guarda el ID del usuario
             $_SESSION['nom_usuari'] = $usuario['nom_usuari']; // Guarda el nombre del usuario
             $_SESSION['cognom_usuari'] = $usuario['cognom_usuari']; // Guarda el apellido del usuario
-            header("Location: dashboard.php"); // Redirigir al dashboard
+            $_SESSION['rol'] = $usuario['rol']; // Guarda el rol del usuario (admin o user)
+
+            // Redirigir según el rol del usuario
+            if ($usuario['rol'] == 'admin') {
+                header("Location: admin_dashboard.php"); // Redirigir al dashboard del administrador
+            } else {
+                header("Location: dashboard.php"); // Redirigir al dashboard de usuario normal
+            }
             exit();
         } else {
             $error = "Usuario o contraseña incorrectos";
@@ -210,4 +224,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 
 </body>
 </html>
+
+
+
+
 

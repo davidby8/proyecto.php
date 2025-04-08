@@ -242,6 +242,52 @@ try {
       font-size: 1rem;
       margin: 5px 20px;
     }
+
+    /* Estilos para el menú desplegable del catálogo */
+    .dropdown {
+      position: relative;
+      display: block;
+    }
+
+    .dropbtn {
+      color: white;
+      padding: 15px 20px;
+      text-decoration: none;
+      font-size: 1.2rem;
+      display: block;
+      transition: background-color 0.3s;
+      background-color: transparent;
+      border: none;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .dropbtn:hover {
+      background-color: #1abc9c;
+    }
+
+    .dropdown-content {
+      display: none;
+      background-color: #2c3e50;
+      width: 100%;
+    }
+
+    .dropdown-content a {
+      color: white;
+      padding: 12px 30px;
+      text-decoration: none;
+      display: block;
+      font-size: 1.1rem;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #1abc9c;
+    }
+
+    .show {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -253,7 +299,16 @@ try {
   <div id="sidebar" class="sidebar">
     <span class="close-btn" onclick="toggleSidebar()">&times;</span>
     <a href="#">Nuevos productos</a>
-    <a href="catalogo.php">Catálogo</a> <!-- Redirige a catalogo.php -->
+    <div class="dropdown">
+      <button class="dropbtn" onclick="toggleDropdown(event)">Catálogo</button>
+      <div id="catalogDropdown" class="dropdown-content">
+        <a href="catalogo.php?categoria=mesas">Mesas</a>
+        <a href="catalogo.php?categoria=sillas">Sillas</a>
+        <a href="catalogo.php?categoria=sofas">Sofás</a>
+        <a href="catalogo.php?categoria=dormitorio">Dormitorio</a>
+        <a href="catalogo.php?categoria=cocina">Cocina</a>
+      </div>
+    </div>
     <a href="#">Últimas unidades</a>
     <a href="logout.php" class="logout-btn">Cerrar sesión</a>
   </div>
@@ -316,6 +371,25 @@ try {
     function toggleCart() {
       const cartSidebar = document.getElementById('cartSidebar');
       cartSidebar.classList.toggle('open');
+    }
+
+    // Función para mostrar/ocultar el menú desplegable del catálogo
+    function toggleDropdown(event) {
+      event.stopPropagation(); // Evita que el evento se propague y cierre el menú inmediatamente
+      document.getElementById("catalogDropdown").classList.toggle("show");
+    }
+
+    // Cerrar el menú desplegable si se hace clic fuera de él
+    window.onclick = function(event) {
+      if (!event.target.matches('.dropbtn')) {
+        var dropdowns = document.getElementsByClassName("dropdown-content");
+        for (var i = 0; i < dropdowns.length; i++) {
+          var openDropdown = dropdowns[i];
+          if (openDropdown.classList.contains('show')) {
+            openDropdown.classList.remove('show');
+          }
+        }
+      }
     }
   </script>
 

@@ -1,4 +1,4 @@
-<?php
+<?php 
 session_start();
 
 // Verificar si el usuario está logueado
@@ -253,7 +253,7 @@ try {
   <div id="sidebar" class="sidebar">
     <span class="close-btn" onclick="toggleSidebar()">&times;</span>
     <a href="#">Nuevos productos</a>
-    <a href="#">Catálogo</a>
+    <a href="catalogo.php">Catálogo</a> <!-- Redirige a catalogo.php -->
     <a href="#">Últimas unidades</a>
     <a href="logout.php" class="logout-btn">Cerrar sesión</a>
   </div>
@@ -321,9 +321,6 @@ try {
 
 </body>
 </html>
-
-
-
 
 
 

@@ -29,13 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_product'])) {
     $nombre = $_POST['nombre'];
     $descripcion = $_POST['descripcion'];
     $precio = $_POST['precio'];
+    $imagen = $_POST['imagen'];
 
-    // Manejar la imagen (si está usando URL)
-    $imagen = $_POST['imagen'];  // Si planeas cargar imágenes desde URL
-
-    // Insertar el producto en la base de datos
     try {
-        $stmt = $pdo->prepare("INSERT INTO productos (nombre, descripcion, precio, imagen) VALUES (?, ?, ?, ?)");
+        // Cambiar nombres de columnas para que coincidan con la BD
+        $stmt = $pdo->prepare("INSERT INTO catalogo (nombre_producto, descripcion, precio, imagen_url) VALUES (?, ?, ?, ?)");
         $stmt->execute([$nombre, $descripcion, $precio, $imagen]);
         $success = "Producto añadido correctamente.";
     } catch (PDOException $e) {
@@ -49,7 +47,7 @@ if (isset($_POST['delete_product'])) {
 
     // Eliminar el producto de la base de datos
     try {
-        $stmt = $pdo->prepare("DELETE FROM productos WHERE id_producto = ?");
+        $stmt = $pdo->prepare("DELETE FROM catalogo WHERE id_producto = ?");
         $stmt->execute([$id_producto]);
         $success = "Producto eliminado correctamente.";
     } catch (PDOException $e) {
@@ -59,7 +57,7 @@ if (isset($_POST['delete_product'])) {
 
 // Obtener todos los productos
 try {
-    $stmt = $pdo->prepare("SELECT * FROM productos");
+    $stmt = $pdo->prepare("SELECT * FROM catalogo");
     $stmt->execute();
     $productos = $stmt->fetchAll();
 } catch (PDOException $e) {
@@ -180,10 +178,12 @@ try {
             <?php foreach ($productos as $producto): ?>
                 <tr>
                     <td><?php echo $producto['id_producto']; ?></td>
-                    <td><?php echo $producto['nombre']; ?></td>
+                    <!-- Corregir nombre_producto -->
+                    <td><?php echo $producto['nombre_producto']; ?></td>
                     <td><?php echo $producto['descripcion']; ?></td>
                     <td><?php echo $producto['precio']; ?> €</td>
-                    <td><img src="<?php echo $producto['imagen']; ?>" alt="<?php echo $producto['nombre']; ?>" width="50"></td>
+                    <!-- Corregir imagen_url -->
+                    <td><img src="<?php echo $producto['imagen_url']; ?>" alt="<?php echo $producto['nombre_producto']; ?>" width="50"></td>
                     <td>
                         <form method="POST" action="">
                             <input type="hidden" name="delete_product" value="<?php echo $producto['id_producto']; ?>">

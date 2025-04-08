@@ -1,41 +1,71 @@
 <?php
+// Habilitar errores
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+session_start();
 $host = "localhost"; 
 $dbname = "Muebles";
-$username = "danielgil"; 
+$db_username = "danielgil";  // Cambiar nombre de variable
 $password = "12345678"; 
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
-    $username = $_POST['username'];
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $username = trim($_POST['username']);
     $contrasenya = $_POST['contrasenya'];
-    $correu_electronic = $_POST['correu_electronic'];
-    $nom_usuari = $_POST['nom_usuari'];
-    $cognom_usuari = $_POST['cognom_usuari'];
+    $correu_electronic = trim($_POST['correu_electronic']);
+    $nom_usuari = trim($_POST['nom_usuari']);
+    $cognom_usuari = trim($_POST['cognom_usuari']);
 
     try {
-        // Conexión a la base de datos
-        $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+        $pdo = new PDO("mysql:host=$host;dbname=$dbname", $db_username, $password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        // Hashear la contraseña
+        // 1. Verificar si el usuario/email ya existen
+        $sql_check = "SELECT id_usuari FROM usuaris WHERE username = :username OR correu_electronic = :correu";
+        $stmt_check = $pdo->prepare($sql_check);
+        $stmt_check->execute([
+            ':username' => $username,
+            ':correu' => $correu_electronic
+        ]);
+
+        if ($stmt_check->rowCount() > 0) {
+            die("<div class='error'>El usuario o correo electrónico ya están registrados.</div>");
+        }
+
+        // 2. Validación de datos
+        if (!filter_var($correu_electronic, FILTER_VALIDATE_EMAIL)) {
+            die("<div class='error'>El correo electrónico no es válido.</div>");
+        }
+
+        // 3. Insertar nuevo usuario
         $hashedPassword = password_hash($contrasenya, PASSWORD_DEFAULT);
+        
+        $sql_insert = "INSERT INTO usuaris 
+                      (username, contrasenya, correu_electronic, nom_usuari, cognom_usuari) 
+                      VALUES 
+                      (:username, :contrasenya, :correu, :nom, :cognom)";
+        
+        $stmt = $pdo->prepare($sql_insert);
+        $stmt->execute([
+            ':username' => $username,
+            ':contrasenya' => $hashedPassword,
+            ':correu' => $correu_electronic,
+            ':nom' => $nom_usuari,
+            ':cognom' => $cognom_usuari
+        ]);
 
-        // Insertar el nuevo usuario en la base de datos
-        $sql = "INSERT INTO usuaris (username, contrasenya, correu_electronic, nom_usuari, cognom_usuari) 
-                VALUES (:username, :contrasenya, :correu_electronic, :nom_usuari, :cognom_usuari)";
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindParam(':username', $username);
-        $stmt->bindParam(':contrasenya', $hashedPassword);
-        $stmt->bindParam(':correu_electronic', $correu_electronic);
-        $stmt->bindParam(':nom_usuari', $nom_usuari);
-        $stmt->bindParam(':cognom_usuari', $cognom_usuari);
-        $stmt->execute();
+        echo "<div class='success'>Registro exitoso. Redirigiendo...</div>";
+        header("Refresh: 2; url=login.php");
+        exit();
 
-        // Mensaje de éxito
-        echo "<div class='success'>Usuario registrado exitosamente. <a href='login.php'>Iniciar sesión</a></div>";
     } catch (PDOException $e) {
-        // Manejo de errores
-        echo "<div class='error'>Error de conexión: " . $e->getMessage() . "</div>";
+        // Mostrar error específico
+        echo "<div class='error'>Error: " . $e->getMessage() . "</div>";
+        error_log("Error en registro: " . $e->getMessage());
     }
+
+    // Cerrar la conexión
+    $pdo = null;  // Cerrar la conexión a la base de datos
 }
 ?>
 

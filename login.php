@@ -1,6 +1,12 @@
 <?php
 session_start();
 
+if (isset($_SESSION['id_usuari'])) {
+    // Si ya está logueado, redirigir al dashboard
+    header("Location: dashboard.php");
+    exit();
+}
+
 $host = "localhost"; 
 $dbname = "Muebles";
 $username = "danielgil"; 
@@ -17,8 +23,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         $usuario = $stmt->fetch();
 
         if ($usuario && password_verify($_POST['contrasena'], $usuario['contrasenya'])) {
-            $_SESSION['user'] = $usuario;
-            header("Location: dashboard.php");
+            // Crear una sesión para el usuario
+            $_SESSION['id_usuari'] = $usuario['id_usuari']; // Guarda el ID del usuario
+            $_SESSION['nom_usuari'] = $usuario['nom_usuari']; // Guarda el nombre del usuario
+            $_SESSION['cognom_usuari'] = $usuario['cognom_usuari']; // Guarda el apellido del usuario
+            header("Location: dashboard.php"); // Redirigir al dashboard
             exit();
         } else {
             $error = "Usuario o contraseña incorrectos";
@@ -28,12 +37,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo basename($_SERVER['PHP_SELF']) == 'login.php' ? 'Iniciar Sesión' : 'Muebles'; ?></title>
+    <title>Iniciar sesión - Muebles</title>
     <style>
         :root {
             --color-primario: #2c3e50;
@@ -103,62 +113,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             border-color: #2ecc71;
         }
 
-        /* Hero Section (para index.php) */
-        .hero {
-            background-color: #f8f9fa;
-            padding: 80px 20px;
-            text-align: center;
-        }
-
-        .hero h1 {
-            font-size: 2.5rem;
-            color: var(--color-primario);
-            margin-bottom: 20px;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            max-width: 800px;
-            margin: 0 auto 30px;
-        }
-
-        .btn-container {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 30px;
-        }
-
-        .btn-primary {
-            background-color: var(--color-secundario);
-            color: var(--texto-claro);
-            padding: 12px 30px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-
-        .btn-primary:hover {
-            background-color: #2ecc71;
-        }
-
-        .btn-secondary {
-            background-color: transparent;
-            color: var(--color-primario);
-            border: 2px solid var(--color-primario);
-            padding: 12px 30px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--color-primario);
-            color: var(--texto-claro);
-        }
-
         /* Formulario de login (para login.php) */
         .login-section {
             max-width: 500px;
@@ -213,19 +167,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             border-radius: 4px;
         }
 
-        /* Sección "Sobre Nosotros" */
-        .about {
-            padding: 60px 20px;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .about h2 {
-            color: var(--color-primario);
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
         footer {
             background-color: var(--color-primario);
             color: var(--texto-claro);
@@ -246,54 +187,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 </header>
 
 <main>
-    <?php if(basename($_SERVER['PHP_SELF']) == 'index.php'): ?>
-        <!-- Contenido de la página de inicio -->
-        <section class="hero">
-            <h1>Muebles</h1>
-            <p>Donde el diseño y la comodidad se encuentran</p>
-            
-            <h2>Bienvenido a nuestra tienda</h2>
-            <p>Explora nuestra exclusiva colección de muebles para tu hogar.</p>
-            
-            <div class="btn-container">
-                <a href="catalogo.php" class="btn-primary">Ver Productos</a>
-                <a href="login.php" class="btn-secondary">Iniciar Sesión</a>
+    <section class="login-section">
+        <h2>Iniciar Sesión</h2>
+        <?php if(isset($error)): ?>
+            <div class="error"><?php echo $error; ?></div>
+        <?php endif; ?>
+        <form method="POST" action="">
+            <div class="input-group">
+                <input type="text" name="usuario" placeholder="Usuario" required>
             </div>
-        </section>
-
-        <section class="about">
-            <h2>Sobre Nosotros</h2>
-            <p>En <strong>Muebles</strong>, nos dedicamos a ofrecerte los mejores muebles con diseños modernos y clásicos. Nuestra misión es transformar tus espacios en lugares únicos y acogedores.</p>
-        </section>
-
-    <?php elseif(basename($_SERVER['PHP_SELF']) == 'login.php'): ?>
-        <!-- Contenido de la página de login -->
-        <section class="hero">
-            <h1>Primavera,<br>el despertar<br>de las ofertas</h1>
-            <a href="catalogo.php" class="btn-primary">VER CATÁLOGO</a>
-        </section>
-
-        <section class="login-section">
-            <h2>Iniciar Sesión</h2>
-            <?php if(isset($error)): ?>
-                <div class="error"><?php echo $error; ?></div>
-            <?php endif; ?>
-            <form method="POST" action="">
-                <div class="input-group">
-                    <input type="text" name="usuario" placeholder="Usuario" required>
-                </div>
-                <div class="input-group">
-                    <input type="password" name="contrasena" placeholder="Contraseña" required>
-                </div>
-                <button type="submit" name="login" class="btn-submit">Iniciar Sesión</button>
-            </form>
-        </section>
-    <?php endif; ?>
+            <div class="input-group">
+                <input type="password" name="contrasena" placeholder="Contraseña" required>
+            </div>
+            <button type="submit" name="login" class="btn-submit">Iniciar Sesión</button>
+        </form>
+    </section>
 </main>
 
 <footer>
-    © <?php echo date('Y'); ?> Muebles. Todos los derechos reservados.
+    <p>© 2025 Muebles. Todos los derechos reservados.</p>
 </footer>
 
 </body>
 </html>
+

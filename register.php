@@ -1,8 +1,8 @@
 <?php
 $host = "localhost"; 
 $dbname = "Muebles";
-$username = "daniel"; 
-$password = "C@ramelo2003"; 
+$username = "danielgil"; 
+$password = "12345678"; 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
     $username = $_POST['username'];

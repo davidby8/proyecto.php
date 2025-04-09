@@ -329,6 +329,7 @@ try {
         <a href="cocina.php">Cocina</a> <!-- Aquí está el enlace a cocina.php -->
       </div>
     </div>
+    <a href="decoracion.php">Decoración</a>
     <a href="#">Últimas unidades</a>
     <a href="logout.php" class="logout-btn">Cerrar sesión</a>
   </div>

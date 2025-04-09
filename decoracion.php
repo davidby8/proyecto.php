@@ -1,4 +1,4 @@
-<?php   
+<?php
 session_start();
 
 // Verificar si el usuario está logueado
@@ -7,15 +7,31 @@ if (!isset($_SESSION['id_usuari'])) {
     exit();
 }
 
-// Incluir archivo de configuración para la conexión a la base de datos
-require 'config.php';
+// Conexión a la base de datos
+$host = "localhost"; 
+$dbname = "Muebles";
+$username = "danielgil"; 
+$password = "12345678";
 
 try {
-    // Recuperar los productos que sean de la categoría 'silla'
+    // Establecer conexión con la base de datos utilizando PDO
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+    // Establecer el modo de error de PDO
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Error de conexión: " . $e->getMessage());
+}
+
+try {
+    // Definir la categoría como 'Sofas'
+    $categoria = 'Decoracion';
+    
+    // Recuperar los productos que sean de la categoría 'Sofas'
     $stmt = $pdo->prepare("SELECT * FROM catalogo WHERE categoria = :categoria");
-    $stmt->bindParam(':categoria', $categoria);
-    $categoria = 'Sillas';  // Definir la categoría como 'silla'
+    $stmt->bindParam(':categoria', $categoria); // Asegúrate de que $categoria esté correctamente binded
     $stmt->execute();
+    
+    // Obtener los productos como un array asociativo
     $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     die("Error al obtener los productos: " . $e->getMessage());
@@ -27,8 +43,9 @@ try {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Catálogo de Sillas - Muebles</title>
+  <title>Catálogo de Decoración - Decoración</title>
   <style>
+    /* Estilos similares a cocina.php */
     body {
       font-family: 'Arial', sans-serif;
       margin: 0;
@@ -39,12 +56,11 @@ try {
       height: 100%;
     }
 
-    /* Barra lateral */
     .sidebar {
       width: 250px;
       position: fixed;
       top: 0;
-      left: -250px; /* Inicialmente oculta */
+      left: -250px;
       height: 100%;
       background-color: #34495e;
       padding-top: 20px;
@@ -73,7 +89,6 @@ try {
       cursor: pointer;
     }
 
-    /* Estilo para el encabezado */
     header {
       background-color: #2c3e50;
       color: #fff;
@@ -90,7 +105,6 @@ try {
       margin: 0;
     }
 
-    /* Estilo para el contenido */
     .container {
       max-width: 1200px;
       margin: 30px auto;
@@ -167,7 +181,6 @@ try {
       font-size: 0.9rem;
     }
 
-    /* Menú lateral */
     .menu-btn {
       font-size: 24px;
       cursor: pointer;
@@ -187,12 +200,10 @@ try {
       transition: margin-left 0.3s;
     }
 
-    /* Agregar animación al contenido cuando el menú se despliega */
     .sidebar.open {
-      left: 0; /* Mueve la barra lateral a la vista */
+      left: 0;
     }
 
-    /* Estilos para el menú desplegable del catálogo */
     .dropdown {
       position: relative;
       display: block;
@@ -238,7 +249,6 @@ try {
       display: block;
     }
 
-    /* Carrito y barra de menú del carrito */
     .cart-btn {
       font-size: 1.8rem;
       color: white;
@@ -252,11 +262,10 @@ try {
     }
 
     .cart-btn:before {
-      content: '\1F6D2'; /* Carrito de compras */
+      content: '\1F6D2';
       font-size: 2rem;
     }
 
-    /* Carrito desplegable */
     .cart-sidebar {
       width: 250px;
       position: fixed;
@@ -271,7 +280,7 @@ try {
     }
 
     .cart-sidebar.open {
-      right: 0; /* Mueve el carrito a la vista */
+      right: 0;
     }
 
     .cart-sidebar a {
@@ -308,10 +317,8 @@ try {
 </head>
 <body>
 
-  <!-- Botón para abrir la barra lateral -->
   <button class="menu-btn" onclick="toggleSidebar()">☰</button>
 
-  <!-- Barra lateral -->
   <div id="sidebar" class="sidebar">
     <span class="close-btn" onclick="toggleSidebar()">&times;</span>
     <a href="#">Nuevos productos</a>
@@ -322,7 +329,7 @@ try {
         <a href="silla.php">Sillas</a>
         <a href="sofa.php">Sofás</a>
         <a href="dormitorio.php">Dormitorio</a>
-        <a href="cocina.php">Cocina</a> <!-- Aquí está el enlace a cocina.php -->
+        <a href="cocina.php">Cocina</a>
       </div>
     </div>
     <a href="decoracion.php">Decoración</a>
@@ -330,16 +337,13 @@ try {
     <a href="logout.php" class="logout-btn">Cerrar sesión</a>
   </div>
 
-  <!-- Botón del carrito (en la parte superior derecha) -->
   <button class="cart-btn" onclick="toggleCart()"></button>
 
-  <!-- Carrito desplegable -->
   <div id="cartSidebar" class="cart-sidebar">
     <span class="close-btn" onclick="toggleCart()">&times;</span>
     <h3>Carrito</h3>
     <div class="cart-items">
       <?php
-        // Mostrar los productos del carrito
         if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0) {
           foreach ($_SESSION['cart'] as $item) {
             echo "<p>{$item['name']} - {$item['quantity']} x \$" . number_format($item['price'], 2) . "</p>";
@@ -352,15 +356,13 @@ try {
     <a href="carrito.php">Ver carrito</a>
   </div>
 
-  <!-- Banner superior con el título "Catálogo de Sillas" -->
   <header>
-    <h1>Catálogo de Sillas</h1>
+    <h1>Catálogo de Decoración</h1>
   </header>
 
-  <!-- Contenido principal -->
   <div class="content">
     <div class="container">
-      <h2>Catálogo de Sillas</h2>
+      <h2>Catálogo de Decoración</h2>
       <div class="product-container">
         <?php if (!empty($productos)): ?>
           <?php foreach ($productos as $producto): ?>
@@ -384,33 +386,28 @@ try {
   </footer>
 
   <script>
-    // Función para abrir y cerrar la barra lateral
     function toggleSidebar() {
       const sidebar = document.getElementById('sidebar');
       const content = document.querySelector('.content');
       sidebar.classList.toggle('open');
       
-      // Ajustar el margen del contenido dependiendo de si la barra lateral está abierta o cerrada
       if (sidebar.classList.contains('open')) {
-        content.style.marginLeft = '250px'; // Desplazar el contenido a la derecha cuando la barra lateral esté abierta
+        content.style.marginLeft = '250px';
       } else {
-        content.style.marginLeft = '0'; // Devolver el contenido a su lugar original cuando la barra lateral esté cerrada
+        content.style.marginLeft = '0';
       }
     }
 
-    // Función para mostrar/ocultar el menú desplegable del catálogo
     function toggleDropdown(event) {
-      event.stopPropagation(); // Evita que el evento se propague y cierre el menú inmediatamente
+      event.stopPropagation();
       document.getElementById("catalogDropdown").classList.toggle("show");
     }
 
-    // Función para abrir/cerrar el carrito
     function toggleCart() {
       const cartSidebar = document.getElementById('cartSidebar');
       cartSidebar.classList.toggle('open');
     }
 
-    // Cerrar el menú desplegable si se hace clic fuera de él
     window.onclick = function(event) {
       if (!event.target.matches('.dropbtn')) {
         var dropdowns = document.getElementsByClassName("dropdown-content");
@@ -426,5 +423,3 @@ try {
 
 </body>
 </html>
-
-

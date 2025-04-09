@@ -166,6 +166,7 @@ try {
                     <option value="sofas">Sofas</option>
                     <option value="dormitorio">Dormitorio</option>
                     <option value="cocina">Cocina</option>
+                    <option value="decoracion">Decoracion</option>
                 </select>
             </div>
             <button type="submit" name="add_product">Añadir Producto</button>

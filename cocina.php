@@ -11,10 +11,10 @@ if (!isset($_SESSION['id_usuari'])) {
 require 'config.php';
 
 try {
-    // Recuperar los productos que sean de la categoría 'mesa'
+    // Recuperar los productos que sean de la categoría 'cocina'
     $stmt = $pdo->prepare("SELECT * FROM catalogo WHERE categoria = :categoria");
     $stmt->bindParam(':categoria', $categoria);
-    $categoria = 'mesa';  // Definir la categoría como 'mesa'
+    $categoria = 'cocina';  // Definir la categoría como 'cocina'
     $stmt->execute();
     $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -27,7 +27,7 @@ try {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Catálogo de Mesas - Muebles</title>
+  <title>Catálogo de Cocina - Muebles</title>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -351,15 +351,15 @@ try {
     <a href="carrito.php">Ver carrito</a>
   </div>
 
-  <!-- Banner superior con el título "Catálogo de Mesas" -->
+  <!-- Banner superior con el título "Catálogo de Cocina" -->
   <header>
-    <h1>Catálogo de Mesas</h1>
+    <h1>Catálogo de Cocina</h1>
   </header>
 
   <!-- Contenido principal -->
   <div class="content">
     <div class="container">
-      <h2>Catálogo de Mesas</h2>
+      <h2>Catálogo de Cocina</h2>
       <div class="product-container">
         <?php if (!empty($productos)): ?>
           <?php foreach ($productos as $producto): ?>

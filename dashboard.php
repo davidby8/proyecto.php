@@ -302,11 +302,11 @@ try {
     <div class="dropdown">
       <button class="dropbtn" onclick="toggleDropdown(event)">Catálogo</button>
       <div id="catalogDropdown" class="dropdown-content">
-        <a href="mesa.php">Mesas</a> <!-- Enlace modificado a mesa.php -->
-        <a href="catalogo.php?categoria=sillas">Sillas</a>
-        <a href="catalogo.php?categoria=sofas">Sofás</a>
-        <a href="catalogo.php?categoria=dormitorio">Dormitorio</a>
-        <a href="catalogo.php?categoria=cocina">Cocina</a>
+        <a href="mesa.php">Mesas</a> <!-- Enlace a mesa.php -->
+        <a href="silla.php">Sillas</a> <!-- Enlace a silla.php -->
+        <a href="sofa.php">Sofás</a> <!-- Enlace a sofa.php -->
+        <a href="dormitorio.php">Dormitorio</a> <!-- Redirige a dormitorio.php -->
+        <a href="cocina.php">Cocina</a> <!-- Cambio aquí para redirigir a cocina.php -->
       </div>
     </div>
     <a href="#">Últimas unidades</a>
@@ -395,6 +395,9 @@ try {
 
 </body>
 </html>
+
+
+
 
 
 

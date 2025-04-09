@@ -1,4 +1,4 @@
-<?php   
+<?php
 session_start();
 
 // Verificar si el usuario está logueado
@@ -7,15 +7,31 @@ if (!isset($_SESSION['id_usuari'])) {
     exit();
 }
 
-// Incluir archivo de configuración para la conexión a la base de datos
-require 'config.php';
+// Conexión a la base de datos
+$host = "localhost"; 
+$dbname = "Muebles";
+$username = "danielgil"; 
+$password = "12345678";
 
 try {
-    // Recuperar los productos que sean de la categoría 'sofa'
+    // Establecer conexión con la base de datos utilizando PDO
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+    // Establecer el modo de error de PDO
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Error de conexión: " . $e->getMessage());
+}
+
+try {
+    // Definir la categoría como 'Sofas'
+    $categoria = 'Sofas';
+    
+    // Recuperar los productos que sean de la categoría 'Sofas'
     $stmt = $pdo->prepare("SELECT * FROM catalogo WHERE categoria = :categoria");
-    $stmt->bindParam(':categoria', $categoria);
-    $categoria = 'sofa';  // Definir la categoría como 'sofa'
+    $stmt->bindParam(':categoria', $categoria); // Asegúrate de que $categoria esté correctamente binded
     $stmt->execute();
+    
+    // Obtener los productos como un array asociativo
     $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     die("Error al obtener los productos: " . $e->getMessage());

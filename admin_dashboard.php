@@ -30,12 +30,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_product'])) {
     $descripcion = $_POST['descripcion'];
     $precio = $_POST['precio'];
     $imagen = $_POST['imagen'];
+    $categoria = $_POST['categoria']; // Obtener la categoría seleccionada
 
     try {
         // Cambiar nombres de columnas para que coincidan con la BD
-        $stmt = $pdo->prepare("INSERT INTO catalogo (nombre_producto, descripcion, precio, imagen_url) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$nombre, $descripcion, $precio, $imagen]);
-        $success = "Producto añadido correctamente.";
+        $stmt = $pdo->prepare("INSERT INTO catalogo (nombre_producto, descripcion, precio, imagen_url, categoria) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$nombre, $descripcion, $precio, $imagen, $categoria]); // Incluir la categoría
+        $success = "Producto añadido correctamente."; // Mensaje de éxito
     } catch (PDOException $e) {
         $error = "Error al añadir el producto: " . $e->getMessage();
     }
@@ -157,6 +158,16 @@ try {
                 <label for="imagen">URL de la imagen:</label>
                 <input type="text" name="imagen" id="imagen" required>
             </div>
+            <div>
+                <label for="categoria">Categoría:</label>
+                <select name="categoria" id="categoria" required>
+                    <option value="mesas">Mesas</option>
+                    <option value="sillas">Sillas</option>
+                    <option value="sofas">Sofas</option>
+                    <option value="dormitorio">Dormitorio</option>
+                    <option value="cocina">Cocina</option>
+                </select>
+            </div>
             <button type="submit" name="add_product">Añadir Producto</button>
         </form>
     </div>
@@ -171,6 +182,7 @@ try {
                 <th>Descripción</th>
                 <th>Precio</th>
                 <th>Imagen</th>
+                <th>Categoría</th> <!-- Nueva columna para mostrar la categoría -->
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -178,12 +190,11 @@ try {
             <?php foreach ($productos as $producto): ?>
                 <tr>
                     <td><?php echo $producto['id_producto']; ?></td>
-                    <!-- Corregir nombre_producto -->
                     <td><?php echo $producto['nombre_producto']; ?></td>
                     <td><?php echo $producto['descripcion']; ?></td>
                     <td><?php echo $producto['precio']; ?> €</td>
-                    <!-- Corregir imagen_url -->
                     <td><img src="<?php echo $producto['imagen_url']; ?>" alt="<?php echo $producto['nombre_producto']; ?>" width="50"></td>
+                    <td><?php echo $producto['categoria']; ?></td> <!-- Mostrar la categoría -->
                     <td>
                         <form method="POST" action="">
                             <input type="hidden" name="delete_product" value="<?php echo $producto['id_producto']; ?>">

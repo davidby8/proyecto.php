@@ -14,7 +14,7 @@ try {
     // Recuperar los productos que sean de la categoría 'silla'
     $stmt = $pdo->prepare("SELECT * FROM catalogo WHERE categoria = :categoria");
     $stmt->bindParam(':categoria', $categoria);
-    $categoria = 'silla';  // Definir la categoría como 'silla'
+    $categoria = 'Sillas';  // Definir la categoría como 'silla'
     $stmt->execute();
     $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {

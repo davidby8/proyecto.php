@@ -11,12 +11,16 @@ if (!isset($_SESSION['id_usuari'])) {
 require 'config.php';
 
 try {
-    // Recuperar los productos que sean de la categoría 'mesa'
+    // Recuperar los productos que sean de la categoría 'Mesas'
     $stmt = $pdo->prepare("SELECT * FROM catalogo WHERE categoria = :categoria");
     $stmt->bindParam(':categoria', $categoria);
-    $categoria = 'mesa';  // Definir la categoría como 'mesa'
+    $categoria = 'Mesas';  // Definir la categoría como 'Mesas' con la "M" mayúscula
     $stmt->execute();
+    
     $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if (!$productos) {
+        echo "No se encontraron productos en la categoría Mesas.";  // Mensaje si no hay productos
+    }
 } catch (PDOException $e) {
     die("Error al obtener los productos: " . $e->getMessage());
 }
@@ -425,3 +429,4 @@ try {
 
 </body>
 </html>
+

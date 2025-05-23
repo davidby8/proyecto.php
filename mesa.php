@@ -1,4 +1,4 @@
-<?php  
+<?php   
 session_start();
 
 // Verificar si el usuario está logueado
@@ -9,6 +9,51 @@ if (!isset($_SESSION['id_usuari'])) {
 
 // Incluir archivo de configuración para la conexión a la base de datos
 require 'config.php';
+
+// Procesar agregar al carrito
+if (isset($_GET['id'])) {
+    $producto_id = $_GET['id'];
+    
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM catalogo WHERE id_producto = :id");
+        $stmt->bindParam(':id', $producto_id);
+        $stmt->execute();
+        
+        $producto = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($producto) {
+            if (!isset($_SESSION['cart'])) {
+                $_SESSION['cart'] = array();
+            }
+            
+            // Verificar si el producto ya está en el carrito
+            $found = false;
+            foreach ($_SESSION['cart'] as &$item) {
+                if ($item['id'] == $producto_id) {
+                    $item['quantity'] += 1;
+                    $found = true;
+                    break;
+                }
+            }
+            
+            if (!$found) {
+                $_SESSION['cart'][] = array(
+                    'id' => $producto['id_producto'],
+                    'name' => $producto['nombre_producto'],
+                    'price' => $producto['precio'],
+                    'quantity' => 1,
+                    'image' => $producto['imagen_url']
+                );
+            }
+            
+            // Redirigir para evitar reenvío del formulario
+            header("Location: mesa.php");
+            exit();
+        }
+    } catch (PDOException $e) {
+        die("Error al obtener el producto: " . $e->getMessage());
+    }
+}
 
 try {
     // Recuperar los productos que sean de la categoría 'Mesas'
@@ -262,10 +307,10 @@ try {
 
     /* Carrito desplegable */
     .cart-sidebar {
-      width: 250px;
+      width: 350px;
       position: fixed;
       top: 0;
-      right: -250px;
+      right: -350px;
       height: 100%;
       background-color: #34495e;
       padding-top: 20px;
@@ -299,14 +344,96 @@ try {
       cursor: pointer;
     }
 
+    .cart-header {
+      color: white;
+      text-align: center;
+      padding: 20px;
+      border-bottom: 1px solid #2c3e50;
+    }
+
     .cart-items {
       padding: 10px 0;
       color: white;
     }
 
-    .cart-items p {
-      font-size: 1rem;
-      margin: 5px 20px;
+    .cart-item {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #2c3e50;
+    }
+
+    .cart-item img {
+      width: 60px;
+      height: 60px;
+      border-radius: 4px;
+      margin-right: 15px;
+    }
+
+    .cart-item-info {
+      flex-grow: 1;
+    }
+
+    .cart-item-name {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .cart-item-price {
+      color: #e67e22;
+    }
+
+    .cart-item-quantity {
+      display: flex;
+      align-items: center;
+      margin-top: 5px;
+    }
+
+    .cart-item-quantity button {
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .cart-item-quantity span {
+      margin: 0 10px;
+    }
+
+    .cart-total {
+      padding: 20px;
+      text-align: right;
+      font-weight: bold;
+      font-size: 1.2rem;
+      border-top: 1px solid #2c3e50;
+    }
+
+    .cart-actions {
+      padding: 20px;
+      text-align: center;
+    }
+
+    .cart-actions a {
+      display: inline-block;
+      background-color: #e67e22;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 4px;
+      margin: 0 5px;
+    }
+
+    .cart-actions a:hover {
+      background-color: #d35400;
+    }
+
+    .empty-cart {
+      text-align: center;
+      padding: 30px;
+      color: #95a5a6;
     }
   </style>
 </head>
@@ -326,7 +453,7 @@ try {
         <a href="silla.php">Sillas</a>
         <a href="sofa.php">Sofás</a>
         <a href="dormitorio.php">Dormitorio</a>
-        <a href="cocina.php">Cocina</a> <!-- Aquí está el enlace a cocina.php -->
+        <a href="cocina.php">Cocina</a>
       </div>
     </div>
     <a href="decoracion.php">Decoración</a>
@@ -340,20 +467,44 @@ try {
   <!-- Carrito desplegable -->
   <div id="cartSidebar" class="cart-sidebar">
     <span class="close-btn" onclick="toggleCart()">&times;</span>
-    <h3>Carrito</h3>
-    <div class="cart-items">
-      <?php
-        // Mostrar los productos del carrito
-        if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0) {
-          foreach ($_SESSION['cart'] as $item) {
-            echo "<p>{$item['name']} - {$item['quantity']} x \$" . number_format($item['price'], 2) . "</p>";
-          }
-        } else {
-          echo "<p>Tu carrito está vacío.</p>";
-        }
-      ?>
+    <div class="cart-header">
+      <h3>Tu Carrito</h3>
     </div>
-    <a href="carrito.php">Ver carrito</a>
+    <div class="cart-items">
+      <?php if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0): ?>
+        <?php 
+          $total = 0;
+          foreach ($_SESSION['cart'] as $item): 
+            $subtotal = $item['price'] * $item['quantity'];
+            $total += $subtotal;
+        ?>
+          <div class="cart-item">
+            <img src="<?php echo htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>">
+            <div class="cart-item-info">
+              <div class="cart-item-name"><?php echo htmlspecialchars($item['name']); ?></div>
+              <div class="cart-item-price">$<?php echo number_format($item['price'], 2); ?></div>
+              <div class="cart-item-quantity">
+                <button onclick="updateQuantity(<?php echo $item['id']; ?>, -1)">-</button>
+                <span><?php echo $item['quantity']; ?></span>
+                <button onclick="updateQuantity(<?php echo $item['id']; ?>, 1)">+</button>
+              </div>
+            </div>
+          </div>
+        <?php endforeach; ?>
+        <div class="cart-total">
+          Total: $<?php echo number_format($total, 2); ?>
+        </div>
+        <div class="cart-actions">
+          <a href="carrito.php">Ver Carrito</a>
+          <a href="checkout.php">Pagar</a>
+        </div>
+      <?php else: ?>
+        <div class="empty-cart">
+          <p>Tu carrito está vacío</p>
+          <a href="mesa.php" class="btn">Seguir comprando</a>
+        </div>
+      <?php endif; ?>
+    </div>
   </div>
 
   <!-- Banner superior con el título "Catálogo de Mesas" -->
@@ -373,7 +524,7 @@ try {
               <h3><?php echo htmlspecialchars($producto['nombre_producto']); ?></h3>
               <p><?php echo htmlspecialchars($producto['descripcion']); ?></p>
               <p class="price">$<?php echo htmlspecialchars($producto['precio']); ?></p>
-              <a href="agregar_carrito.php?id=<?php echo $producto['id_producto']; ?>" class="btn">Agregar al carrito</a>
+              <a href="mesa.php?id=<?php echo $producto['id_producto']; ?>" class="btn">Agregar al carrito</a>
             </div>
           <?php endforeach; ?>
         <?php else: ?>
@@ -414,6 +565,21 @@ try {
       cartSidebar.classList.toggle('open');
     }
 
+    // Función para actualizar la cantidad de un producto en el carrito
+    function updateQuantity(productId, change) {
+      // Enviar una solicitud AJAX para actualizar la cantidad
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "update_cart.php", true);
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+      xhr.onreadystatechange = function() {
+        if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+          // Recargar la página para actualizar el carrito
+          location.reload();
+        }
+      };
+      xhr.send(`id=${productId}&change=${change}`);
+    }
+
     // Cerrar el menú desplegable si se hace clic fuera de él
     window.onclick = function(event) {
       if (!event.target.matches('.dropbtn')) {
@@ -430,4 +596,3 @@ try {
 
 </body>
 </html>
-

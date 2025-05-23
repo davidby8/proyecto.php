@@ -28,13 +28,75 @@ try {
     
     // Recuperar los productos que sean de la categoría 'Sofas'
     $stmt = $pdo->prepare("SELECT * FROM catalogo WHERE categoria = :categoria");
-    $stmt->bindParam(':categoria', $categoria); // Asegúrate de que $categoria esté correctamente binded
+    $stmt->bindParam(':categoria', $categoria);
     $stmt->execute();
     
     // Obtener los productos como un array asociativo
     $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     die("Error al obtener los productos: " . $e->getMessage());
+}
+
+// Procesar agregar al carrito
+if (isset($_GET['add_to_cart'])) {
+    $product_id = $_GET['add_to_cart'];
+    
+    // Buscar el producto en la base de datos
+    $stmt = $pdo->prepare("SELECT * FROM catalogo WHERE id_producto = :id");
+    $stmt->bindParam(':id', $product_id);
+    $stmt->execute();
+    $producto = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($producto) {
+        // Inicializar el carrito si no existe
+        if (!isset($_SESSION['cart'])) {
+            $_SESSION['cart'] = array();
+        }
+        
+        // Verificar si el producto ya está en el carrito
+        $found = false;
+        foreach ($_SESSION['cart'] as &$item) {
+            if ($item['id'] == $product_id) {
+                $item['quantity'] += 1;
+                $found = true;
+                break;
+            }
+        }
+        
+        // Si no está en el carrito, agregarlo
+        if (!$found) {
+            $_SESSION['cart'][] = array(
+                'id' => $product_id,
+                'name' => $producto['nombre_producto'],
+                'price' => $producto['precio'],
+                'quantity' => 1,
+                'image' => $producto['imagen_url']
+            );
+        }
+        
+        // Redirigir para evitar reenvío del formulario
+        header("Location: sofa.php");
+        exit();
+    }
+}
+
+// Procesar eliminar del carrito
+if (isset($_GET['remove_from_cart'])) {
+    $product_id = $_GET['remove_from_cart'];
+    
+    if (isset($_SESSION['cart'])) {
+        foreach ($_SESSION['cart'] as $key => $item) {
+            if ($item['id'] == $product_id) {
+                unset($_SESSION['cart'][$key]);
+                break;
+            }
+        }
+        // Reindexar el array
+        $_SESSION['cart'] = array_values($_SESSION['cart']);
+    }
+    
+    header("Location: sofa.php");
+    exit();
 }
 ?>
 
@@ -45,7 +107,6 @@ try {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Catálogo de Sofás - Muebles</title>
   <style>
-    /* Estilos similares a cocina.php */
     body {
       font-family: 'Arial', sans-serif;
       margin: 0;
@@ -162,6 +223,8 @@ try {
       text-decoration: none;
       border-radius: 4px;
       transition: background-color 0.3s;
+      display: inline-block;
+      margin-top: 10px;
     }
 
     .product-card .btn:hover {
@@ -267,10 +330,10 @@ try {
     }
 
     .cart-sidebar {
-      width: 250px;
+      width: 350px;
       position: fixed;
       top: 0;
-      right: -250px;
+      right: -350px;
       height: 100%;
       background-color: #34495e;
       padding-top: 20px;
@@ -309,9 +372,74 @@ try {
       color: white;
     }
 
-    .cart-items p {
+    .cart-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      border-bottom: 1px solid #2c3e50;
+    }
+
+    .cart-item img {
+      width: 50px;
+      height: 50px;
+      border-radius: 4px;
+      margin-right: 15px;
+    }
+
+    .cart-item-info {
+      flex-grow: 1;
+    }
+
+    .cart-item-name {
       font-size: 1rem;
-      margin: 5px 20px;
+      margin: 0 0 5px 0;
+    }
+
+    .cart-item-price {
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    .cart-item-quantity {
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    .cart-item-remove {
+      color: #e74c3c;
+      text-decoration: none;
+      font-size: 0.9rem;
+      margin-left: 10px;
+    }
+
+    .cart-total {
+      padding: 20px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-align: right;
+      border-top: 1px solid #2c3e50;
+    }
+
+    .cart-empty {
+      padding: 20px;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    .checkout-btn {
+      display: block;
+      background-color: #1abc9c;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      margin: 20px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+
+    .checkout-btn:hover {
+      background-color: #16a085;
     }
   </style>
 </head>
@@ -341,19 +469,35 @@ try {
 
   <div id="cartSidebar" class="cart-sidebar">
     <span class="close-btn" onclick="toggleCart()">&times;</span>
-    <h3>Carrito</h3>
+    <h3 style="color: white; text-align: center; margin-top: 30px;">Carrito de compras</h3>
     <div class="cart-items">
-      <?php
-        if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0) {
-          foreach ($_SESSION['cart'] as $item) {
-            echo "<p>{$item['name']} - {$item['quantity']} x \$" . number_format($item['price'], 2) . "</p>";
-          }
-        } else {
-          echo "<p>Tu carrito está vacío.</p>";
-        }
-      ?>
+      <?php if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0): ?>
+        <?php 
+          $total = 0;
+          foreach ($_SESSION['cart'] as $item): 
+            $subtotal = $item['price'] * $item['quantity'];
+            $total += $subtotal;
+        ?>
+          <div class="cart-item">
+            <img src="<?php echo htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>">
+            <div class="cart-item-info">
+              <p class="cart-item-name"><?php echo htmlspecialchars($item['name']); ?></p>
+              <p class="cart-item-price">$<?php echo number_format($item['price'], 2); ?></p>
+              <p class="cart-item-quantity">Cantidad: <?php echo $item['quantity']; ?></p>
+            </div>
+            <a href="sofa.php?remove_from_cart=<?php echo $item['id']; ?>" class="cart-item-remove">×</a>
+          </div>
+        <?php endforeach; ?>
+        <div class="cart-total">
+          Total: $<?php echo number_format($total, 2); ?>
+        </div>
+        <a href="carrito.php" class="checkout-btn">Proceder al pago</a>
+      <?php else: ?>
+        <div class="cart-empty">
+          <p>Tu carrito está vacío</p>
+        </div>
+      <?php endif; ?>
     </div>
-    <a href="carrito.php">Ver carrito</a>
   </div>
 
   <header>
@@ -371,7 +515,7 @@ try {
               <h3><?php echo htmlspecialchars($producto['nombre_producto']); ?></h3>
               <p><?php echo htmlspecialchars($producto['descripcion']); ?></p>
               <p class="price">$<?php echo htmlspecialchars($producto['precio']); ?></p>
-              <a href="agregar_carrito.php?id=<?php echo $producto['id_producto']; ?>" class="btn">Agregar al carrito</a>
+              <a href="sofa.php?add_to_cart=<?php echo $producto['id_producto']; ?>" class="btn">Agregar al carrito</a>
             </div>
           <?php endforeach; ?>
         <?php else: ?>

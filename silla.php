@@ -1,6 +1,7 @@
 <?php   
 session_start();
 
+
 // Verificar si el usuario está logueado
 if (!isset($_SESSION['id_usuari'])) {
     header("Location: login.php"); // Redirigir al login si no está logueado

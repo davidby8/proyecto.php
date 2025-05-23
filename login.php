@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 
             // Redirigir según el rol del usuario
             if ($usuario['rol'] == 'admin') {
-                header("Location: admin_dashboard.php"); // Redirigir al dashboard del administrador
+                header("Location: admin_inicio.php"); // Redirigir al dashboard del administrador
             } else {
                 header("Location: dashboard.php"); // Redirigir al dashboard de usuario normal
             }

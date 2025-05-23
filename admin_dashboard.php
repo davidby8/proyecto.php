@@ -423,7 +423,7 @@ try {
 </div>
  
     <header>
-        <h1>Dashboard Administrador - Clientes</h1>
+        <h1>Dashboard Administrador - Productos</h1>
         <div style="position: absolute; top: 20px; right: 80px;">
             <a href="dashboard_clientes_admin.php" style="background-color: #1abc9c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-size: 16px;">Administrar Clientes</a>
         </div>

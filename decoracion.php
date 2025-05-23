@@ -7,6 +7,11 @@ if (!isset($_SESSION['id_usuari'])) {
     exit();
 }
 
+// Inicializar el carrito si no existe
+if (!isset($_SESSION['cart'])) {
+    $_SESSION['cart'] = array();
+}
+
 // Conexión a la base de datos
 $host = "localhost"; 
 $dbname = "Muebles";
@@ -22,13 +27,55 @@ try {
     die("Error de conexión: " . $e->getMessage());
 }
 
+// Procesar agregar al carrito
+if (isset($_GET['add_to_cart'])) {
+    $product_id = $_GET['add_to_cart'];
+    
+    try {
+        // Obtener información del producto
+        $stmt = $pdo->prepare("SELECT * FROM catalogo WHERE id_producto = :id");
+        $stmt->bindParam(':id', $product_id);
+        $stmt->execute();
+        $product = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($product) {
+            // Verificar si el producto ya está en el carrito
+            $found = false;
+            foreach ($_SESSION['cart'] as &$item) {
+                if ($item['id'] == $product_id) {
+                    $item['quantity'] += 1;
+                    $found = true;
+                    break;
+                }
+            }
+            
+            if (!$found) {
+                // Agregar nuevo producto al carrito
+                $_SESSION['cart'][] = array(
+                    'id' => $product['id_producto'],
+                    'name' => $product['nombre_producto'],
+                    'price' => $product['precio'],
+                    'quantity' => 1,
+                    'image' => $product['imagen_url']
+                );
+            }
+            
+            // Redirigir para evitar reenvío del formulario
+            header("Location: decoracion.php");
+            exit();
+        }
+    } catch (PDOException $e) {
+        die("Error al obtener el producto: " . $e->getMessage());
+    }
+}
+
 try {
-    // Definir la categoría como 'Sofas'
+    // Definir la categoría como 'Decoracion'
     $categoria = 'Decoracion';
     
-    // Recuperar los productos que sean de la categoría 'Sofas'
+    // Recuperar los productos que sean de la categoría 'Decoracion'
     $stmt = $pdo->prepare("SELECT * FROM catalogo WHERE categoria = :categoria");
-    $stmt->bindParam(':categoria', $categoria); // Asegúrate de que $categoria esté correctamente binded
+    $stmt->bindParam(':categoria', $categoria);
     $stmt->execute();
     
     // Obtener los productos como un array asociativo
@@ -267,10 +314,10 @@ try {
     }
 
     .cart-sidebar {
-      width: 250px;
+      width: 350px;
       position: fixed;
       top: 0;
-      right: -250px;
+      right: -350px;
       height: 100%;
       background-color: #34495e;
       padding-top: 20px;
@@ -305,13 +352,86 @@ try {
     }
 
     .cart-items {
-      padding: 10px 0;
+      padding: 10px 20px;
       color: white;
     }
 
-    .cart-items p {
-      font-size: 1rem;
-      margin: 5px 20px;
+    .cart-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #2c3e50;
+    }
+
+    .cart-item img {
+      width: 60px;
+      height: 60px;
+      border-radius: 4px;
+      margin-right: 15px;
+    }
+
+    .cart-item-info {
+      flex-grow: 1;
+    }
+
+    .cart-item-name {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .cart-item-price {
+      color: #e67e22;
+    }
+
+    .cart-item-quantity {
+      display: flex;
+      align-items: center;
+      margin-top: 5px;
+    }
+
+    .cart-item-quantity button {
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .cart-item-quantity span {
+      margin: 0 10px;
+    }
+
+    .cart-total {
+      padding: 20px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-align: right;
+      border-top: 1px solid #2c3e50;
+      margin-top: 10px;
+    }
+
+    .checkout-btn {
+      display: block;
+      background-color: #e67e22;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      margin: 20px;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+
+    .checkout-btn:hover {
+      background-color: #d35400;
+    }
+
+    .empty-cart {
+      text-align: center;
+      padding: 20px;
     }
   </style>
 </head>
@@ -341,19 +461,38 @@ try {
 
   <div id="cartSidebar" class="cart-sidebar">
     <span class="close-btn" onclick="toggleCart()">&times;</span>
-    <h3>Carrito</h3>
+    <h3 style="color: white; padding: 0 20px;">Carrito de compras</h3>
     <div class="cart-items">
-      <?php
-        if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0) {
-          foreach ($_SESSION['cart'] as $item) {
-            echo "<p>{$item['name']} - {$item['quantity']} x \$" . number_format($item['price'], 2) . "</p>";
-          }
-        } else {
-          echo "<p>Tu carrito está vacío.</p>";
-        }
-      ?>
+      <?php if (!empty($_SESSION['cart'])): ?>
+        <?php 
+          $total = 0;
+          foreach ($_SESSION['cart'] as $item): 
+          $subtotal = $item['price'] * $item['quantity'];
+          $total += $subtotal;
+        ?>
+          <div class="cart-item">
+            <img src="<?php echo htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>">
+            <div class="cart-item-info">
+              <div class="cart-item-name"><?php echo htmlspecialchars($item['name']); ?></div>
+              <div class="cart-item-price">$<?php echo number_format($item['price'], 2); ?></div>
+              <div class="cart-item-quantity">
+                <button onclick="updateQuantity(<?php echo $item['id']; ?>, -1)">-</button>
+                <span><?php echo $item['quantity']; ?></span>
+                <button onclick="updateQuantity(<?php echo $item['id']; ?>, 1)">+</button>
+              </div>
+            </div>
+          </div>
+        <?php endforeach; ?>
+        <div class="cart-total">
+          Total: $<?php echo number_format($total, 2); ?>
+        </div>
+        <a href="carrito.php" class="checkout-btn">Proceder al pago</a>
+      <?php else: ?>
+        <div class="empty-cart">
+          <p>Tu carrito está vacío</p>
+        </div>
+      <?php endif; ?>
     </div>
-    <a href="carrito.php">Ver carrito</a>
   </div>
 
   <header>
@@ -371,7 +510,7 @@ try {
               <h3><?php echo htmlspecialchars($producto['nombre_producto']); ?></h3>
               <p><?php echo htmlspecialchars($producto['descripcion']); ?></p>
               <p class="price">$<?php echo htmlspecialchars($producto['precio']); ?></p>
-              <a href="agregar_carrito.php?id=<?php echo $producto['id_producto']; ?>" class="btn">Agregar al carrito</a>
+              <a href="decoracion.php?add_to_cart=<?php echo $producto['id_producto']; ?>" class="btn">Agregar al carrito</a>
             </div>
           <?php endforeach; ?>
         <?php else: ?>
@@ -406,6 +545,11 @@ try {
     function toggleCart() {
       const cartSidebar = document.getElementById('cartSidebar');
       cartSidebar.classList.toggle('open');
+    }
+
+    function updateQuantity(productId, change) {
+      // Enviar una solicitud al servidor para actualizar la cantidad
+      window.location.href = `update_cart.php?id=${productId}&change=${change}`;
     }
 
     window.onclick = function(event) {

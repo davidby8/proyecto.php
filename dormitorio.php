@@ -7,6 +7,11 @@ if (!isset($_SESSION['id_usuari'])) {
     exit();
 }
 
+// Inicializar el carrito si no existe
+if (!isset($_SESSION['cart'])) {
+    $_SESSION['cart'] = array();
+}
+
 // Incluir archivo de configuración para la conexión a la base de datos
 require 'config.php';
 
@@ -19,6 +24,44 @@ try {
     $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     die("Error al obtener los productos: " . $e->getMessage());
+}
+
+// Procesar agregar al carrito
+if (isset($_GET['id'])) {
+    $producto_id = $_GET['id'];
+    
+    // Buscar el producto en la base de datos
+    $stmt = $pdo->prepare("SELECT * FROM catalogo WHERE id_producto = :id");
+    $stmt->bindParam(':id', $producto_id);
+    $stmt->execute();
+    $producto = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($producto) {
+        // Verificar si el producto ya está en el carrito
+        $encontrado = false;
+        foreach ($_SESSION['cart'] as &$item) {
+            if ($item['id'] == $producto_id) {
+                $item['quantity'] += 1;
+                $encontrado = true;
+                break;
+            }
+        }
+        
+        if (!$encontrado) {
+            // Agregar nuevo producto al carrito
+            $_SESSION['cart'][] = array(
+                'id' => $producto['id_producto'],
+                'name' => $producto['nombre_producto'],
+                'price' => $producto['precio'],
+                'quantity' => 1,
+                'image' => $producto['imagen_url']
+            );
+        }
+    }
+    
+    // Redirigir para evitar reenvío del formulario
+    header("Location: dormitorio.php");
+    exit();
 }
 ?>
 
@@ -300,9 +343,40 @@ try {
       color: white;
     }
 
-    .cart-items p {
-      font-size: 1rem;
-      margin: 5px 20px;
+    .cart-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      border-bottom: 1px solid #2c3e50;
+    }
+
+    .cart-item img {
+      width: 50px;
+      height: 50px;
+      border-radius: 4px;
+      margin-right: 10px;
+    }
+
+    .cart-item-info {
+      flex-grow: 1;
+    }
+
+    .cart-item-info p {
+      margin: 5px 0;
+      font-size: 0.9rem;
+    }
+
+    .cart-total {
+      padding: 15px 20px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      border-top: 1px solid #2c3e50;
+    }
+
+    .remove-item {
+      color: #e74c3c;
+      cursor: pointer;
+      font-size: 1.2rem;
     }
   </style>
 </head>
@@ -321,7 +395,7 @@ try {
         <a href="mesa.php">Mesas</a>
         <a href="silla.php">Sillas</a>
         <a href="sofa.php">Sofás</a>
-        <a href="dormitorio.php">Dormitorio</a> <!-- Aquí está el enlace a dormitorio.php -->
+        <a href="dormitorio.php">Dormitorio</a>
         <a href="cocina.php">Cocina</a>
       </div>
     </div>
@@ -336,20 +410,31 @@ try {
   <!-- Carrito desplegable -->
   <div id="cartSidebar" class="cart-sidebar">
     <span class="close-btn" onclick="toggleCart()">&times;</span>
-    <h3>Carrito</h3>
+    <h3 style="color: white; padding: 0 20px;">Carrito</h3>
     <div class="cart-items">
       <?php
+        $total = 0;
         // Mostrar los productos del carrito
         if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0) {
-          foreach ($_SESSION['cart'] as $item) {
-            echo "<p>{$item['name']} - {$item['quantity']} x \$" . number_format($item['price'], 2) . "</p>";
+          foreach ($_SESSION['cart'] as $key => $item) {
+            $subtotal = $item['price'] * $item['quantity'];
+            $total += $subtotal;
+            echo '<div class="cart-item">';
+            echo '<img src="' . htmlspecialchars($item['image']) . '" alt="' . htmlspecialchars($item['name']) . '">';
+            echo '<div class="cart-item-info">';
+            echo '<p>' . htmlspecialchars($item['name']) . '</p>';
+            echo '<p>' . $item['quantity'] . ' x $' . number_format($item['price'], 2) . '</p>';
+            echo '</div>';
+            echo '<span class="remove-item" onclick="removeItem(' . $key . ')">&times;</span>';
+            echo '</div>';
           }
+          echo '<div class="cart-total">Total: $' . number_format($total, 2) . '</div>';
         } else {
-          echo "<p>Tu carrito está vacío.</p>";
+          echo '<p style="padding: 20px;">Tu carrito está vacío.</p>';
         }
       ?>
     </div>
-    <a href="carrito.php">Ver carrito</a>
+    <a href="carrito.php" style="background-color: #1abc9c; text-align: center;">Ver carrito completo</a>
   </div>
 
   <!-- Banner superior con el título "Catálogo de Dormitorio" -->
@@ -369,7 +454,7 @@ try {
               <h3><?php echo htmlspecialchars($producto['nombre_producto']); ?></h3>
               <p><?php echo htmlspecialchars($producto['descripcion']); ?></p>
               <p class="price">$<?php echo htmlspecialchars($producto['precio']); ?></p>
-              <a href="agregar_carrito.php?id=<?php echo $producto['id_producto']; ?>" class="btn">Agregar al carrito</a>
+              <a href="dormitorio.php?id=<?php echo $producto['id_producto']; ?>" class="btn">Agregar al carrito</a>
             </div>
           <?php endforeach; ?>
         <?php else: ?>
@@ -392,15 +477,15 @@ try {
       
       // Ajustar el margen del contenido dependiendo de si la barra lateral está abierta o cerrada
       if (sidebar.classList.contains('open')) {
-        content.style.marginLeft = '250px'; // Desplazar el contenido a la derecha cuando la barra lateral esté abierta
+        content.style.marginLeft = '250px';
       } else {
-        content.style.marginLeft = '0'; // Devolver el contenido a su lugar original cuando la barra lateral esté cerrada
+        content.style.marginLeft = '0';
       }
     }
 
     // Función para mostrar/ocultar el menú desplegable del catálogo
     function toggleDropdown(event) {
-      event.stopPropagation(); // Evita que el evento se propague y cierre el menú inmediatamente
+      event.stopPropagation();
       document.getElementById("catalogDropdown").classList.toggle("show");
     }
 
@@ -408,6 +493,13 @@ try {
     function toggleCart() {
       const cartSidebar = document.getElementById('cartSidebar');
       cartSidebar.classList.toggle('open');
+    }
+
+    // Función para eliminar un item del carrito
+    function removeItem(key) {
+      if (confirm('¿Estás seguro de que quieres eliminar este producto del carrito?')) {
+        window.location.href = 'remove_item.php?key=' + key;
+      }
     }
 
     // Cerrar el menú desplegable si se hace clic fuera de él
